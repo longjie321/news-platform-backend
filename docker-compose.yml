@@ -1,0 +1,86 @@
+# ============================================================
+# 区域：容器编排（docker-compose）
+# 作用：一条命令把整个后端跑起来：backend（FastAPI）+ redis（缓存）
+#   MySQL 用宿主机的（数据不迁移，避免把本机数据库搬进容器）
+# 用法：
+#   docker compose up -d --build      启动
+#   docker compose logs -f backend    看日志
+#   docker compose down               停止
+#
+# 细节要点：
+#   ① env_file: .env —— 把宿主机的 .env 注入容器。
+#      这一步很关键：.dockerignore 把 .env 排除在镜像之外（防止密钥进镜像），
+#      所以密钥只能靠 env_file 在"运行时"注入，否则容器里 AI 功能全是 500
+#   ② rag_data 目录用 volume 挂载 —— 向量库是本地产物（几百 MB），
+#      不挂载的话容器一重建索引就没了，又得重新花时间/花钱向量化
+#   ③ environment 的优先级高于 env_file，所以容器里要用服务名 redis 覆盖 REDIS_HOST；
+#      关调试开关（DEBUG / SQL_ECHO）也是靠这条规则，保证容器里不会吐 traceback
+#   ④ 数据库连接串从 .env 的 DOCKER_DATABASE_URL 读，不写死在本文件里
+#      （本文件要提交到 git，写死密码等于把凭据公开；用 :? 让漏配时直接报错）
+#
+# 特别需要注意：
+#   ① 容器里访问宿主机 MySQL 要用 host.docker.internal（Windows/Mac 支持），
+#      不能写 localhost —— 那是容器自己的 localhost
+#   ② MySQL 用户 root 默认只允许 localhost 连接，远程连接会报错；
+#      真要用容器连宿主机 MySQL，需要放开 root 的远程权限或另建账号（本项目用的是本机开发库）
+#   ③ 别把 .env 用 COPY 打进镜像：镜像会被推到仓库，等于公开泄露密钥
+#
+# HR 常问考点（这一区域的面试问题）：
+#   Q1: 为什么 MySQL 不放进容器？
+#       → 数据库是"有状态服务"，数据的重要性远高于应用。容器适合跑无状态的服务，
+#         数据库放宿主机（或用云数据库 RDS）更容易做备份、恢复和容量规划。
+#         初级项目往往一股脑全塞 compose，能解释清楚"为什么不全塞"才是加分项
+#   Q2: 容器里的服务怎么访问宿主机？
+#       → Docker Desktop 上走 host.docker.internal；Linux 上可以用 host 网络模式
+#         或 --add-host=host.docker.internal:host-gateway
+#   Q3: 密钥怎么管理？
+#       → 开发用 .env + env_file；生产应该用平台的密钥管理（K8s Secret / 云厂商 Secrets Manager），
+#         绝不能写进镜像或提交到代码仓库
+#   Q4: 为什么要挂 rag_data 卷？
+#       → 向量库是"派生数据但重建成本高"（要重新调 embedding 接口、花时间和钱），
+#         所以当持久化数据对待。这也是"有状态 vs 无状态"的一个具体判断案例
+# ============================================================
+
+services:
+  # 后端应用
+  backend:
+    build: .
+    container_name: toutiao-api
+    ports:
+      - "8000:8000"
+    env_file:
+      # 从宿主机的 .env 注入密钥（DEEPSEEK_API_KEY / EMBEDDING_API_KEY 等）
+      #   .dockerignore 已经把 .env 排除在镜像外，所以只能这样在运行时注入
+      - .env
+    environment:
+      # MySQL 用宿主机：host.docker.internal = Windows 宿主机的地址
+      # ⚠️ 密码不再写死在这个文件里：这个文件要提交到 git，
+      #   把数据库密码写进去等于把凭据公开。改成从 .env 读容器专用变量。
+      #   为什么不复用 DATABASE_URL：本地开发连的是 localhost，
+      #   而容器里必须写 host.docker.internal —— 同一个变量会互相打架，
+      #   所以单独用 DOCKER_DATABASE_URL。
+      # `:?` 的作用：没设置时直接报错并给出提示，而不是悄悄用个默认密码跑起来。
+      DATABASE_URL: "${DOCKER_DATABASE_URL:?请先在 .env 里设置 DOCKER_DATABASE_URL，格式见 .env.example}"
+      # Redis 用 compose 内的服务名（容器间直接通信，不用走宿主机）
+      REDIS_HOST: "redis"
+      # 向量库目录指向挂载点，保证容器重建后索引还在
+      CHROMA_PERSIST_DIR: "/app/rag_data"
+      # 显式关掉调试输出。
+      #   environment 的优先级高于 env_file，所以即使本机 .env 里
+      #   为了调试写了 DEBUG=true，容器里也不会把 traceback 吐给客户端。
+      DEBUG: "false"
+      SQL_ECHO: "false"
+    volumes:
+      # 把宿主机的 rag_data 挂进容器：索引在宿主机建一次，容器里直接复用
+      - ./rag_data:/app/rag_data
+    depends_on:
+      - redis
+    restart: unless-stopped
+    # 异常退出自动重启（除非是被 docker compose down 主动停掉的）
+
+  # Redis 缓存（镜像拉取走加速器）
+  redis:
+    image: redis:7-alpine
+    container_name: toutiao-redis
+    restart: unless-stopped
+    # 不映射端口到宿主机：只给容器内部用，避免和本地 6379 冲突

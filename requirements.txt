@@ -1,0 +1,15 @@
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+sqlalchemy[asyncio]>=2.0.0
+aiomysql>=0.2.0
+redis>=5.0.0
+passlib[bcrypt]>=1.7.4
+# 注意: bcrypt 必须锁 4.0.1！5.x 移除了 __about__ 属性，passlib 1.7.4 会报错导致密码功能崩溃
+bcrypt==4.0.1
+pydantic>=2.6.0
+httpx>=0.27.0
+python-dotenv>=1.0.0
+chromadb>=1.0.0
+# 向量化走硅基流动 API（httpx 已在上面），不需要本地模型，也就没有 torch 依赖
+
+# 提示：pytest 等测试依赖在 requirements-dev.txt 里，运行项目本身不需要装
