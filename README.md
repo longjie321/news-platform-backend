@@ -1,4 +1,4 @@
-# Toutiao News Backend
+# 新闻资讯平台后端（含 RAG 知识库问答）
 
 FastAPI 新闻后端：用户体系 + 新闻业务 + 一个「锦上添花」的 RAG 知识库问答模块。
 

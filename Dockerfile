@@ -1,4 +1,4 @@
-# toutiao_backend Dockerfile
+# 新闻资讯平台后端 Dockerfile
 # 把 FastAPI 项目打包成镜像，让任何机器 "docker run" 就能跑起来
 
 # 1. 基础镜像：Python 3.13 精简版（体积小、够用）

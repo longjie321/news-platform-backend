@@ -24,7 +24,7 @@ from utils.exception_handlers import register_exception_handlers
 # 注册全局异常处理器
 
 app = FastAPI(
-    title="Toutiao News Backend",
+    title="新闻资讯平台后端（含 RAG 知识库问答）",
     description=(
         "FastAPI 新闻后端：新闻浏览、用户认证、收藏、浏览历史、"
         "AI 问答、RAG 新闻知识库问答（向量检索 + 带来源回答）"

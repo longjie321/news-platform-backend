@@ -45,7 +45,7 @@ services:
   # 后端应用
   backend:
     build: .
-    container_name: toutiao-api
+    container_name: news-platform-api
     ports:
       - "8000:8000"
     env_file:
@@ -81,6 +81,6 @@ services:
   # Redis 缓存（镜像拉取走加速器）
   redis:
     image: redis:7-alpine
-    container_name: toutiao-redis
+    container_name: news-platform-redis
     restart: unless-stopped
     # 不映射端口到宿主机：只给容器内部用，避免和本地 6379 冲突

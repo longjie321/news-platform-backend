@@ -135,7 +135,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #                 套两层 = 上一级的上一级
 #   BASE_DIR      【自起名】本文件(在 config 里) → 上一级就是项目根。
 #                 叫 BASE 是因为后面所有路径都基于它来拼
-# 算出来的路径长这样：C:\Users\longjie\PycharmProjects\toutiao_backend
+# 算出来的路径长这样：C:\Users\longjie\PycharmProjects\<你的项目目录>
 # ⚠️ 注意括号的配对：abspath(__file__) 先算，dirname 再套，dirname 又套一层
 
 
@@ -188,7 +188,7 @@ def _resolve_chroma_dir() -> str:
         # 逐词：
         #   return         【内置】返回，函数到此结束
         #   os.path.join   【标准库】把两段路径拼起来。它聪明在"用当前系统的分隔符"：
-        #                  Windows 拼出 …\toutiao_backend\rag_data，Linux 拼出 …/toutiao_backend/rag_data
+        #                  Windows 拼出 …\<你的项目目录>\rag_data，Linux 拼出 …/<你的项目目录>/rag_data
         #                  ⚠️ 所以别自己写 "路径1" + "/" + "路径2"（在 Windows 上会混用斜杠）
         #   BASE_DIR       【本地】上面算出来的项目根目录
         #   "rag_data"     【自起名】文件夹名。rag（检索增强生成）+ data（数据）
