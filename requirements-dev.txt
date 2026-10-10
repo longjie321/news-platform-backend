@@ -1,0 +1,21 @@
+# ============================================================
+# 区域：开发/测试依赖
+# 作用：把"跑测试和调试需要、但线上运行不需要"的包单独放一个文件
+#   为什么分开：线上镜像只需要 requirements.txt，装 pytest 之类只会让镜像变大
+# 用法：
+#   pip install -r requirements.txt -r requirements-dev.txt
+# 运行测试：
+#   python -m pytest tests -v
+# ============================================================
+
+-r requirements.txt
+# 先装运行依赖（-r 表示"把那个文件里的依赖也包含进来"）
+
+pytest>=8.0.0
+# 测试框架
+
+pytest-asyncio>=0.23.0
+# 支持 async 测试函数（我们的 CRUD 都是 async 的，不加它会报 "async def functions are not natively supported"）
+
+anyio>=4.0.0
+# httpx 的 ASGI 传输依赖它来做异步测试
