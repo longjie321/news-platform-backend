@@ -23,18 +23,6 @@ async def register(user_data: UserRegisterRequest, db: AsyncSession = Depends(ge
     user = await users.create_user(db, user_data)
     token = await users.create_token(db, user.id)
     # return {
-    #     "code": 200,
-    #     "message": "注册成功",
-    #     "data": {
-    #         "token": token,
-    #         "userInfo": {
-    #             "id": user.id,
-    #             "username": user.username,
-    #             "bio": user.bio,
-    #             "avatar": user.avatar
-    #         }
-    #     }
-    # }
 
     response_data = UserAuthResponse(token=token, user_info=UserInfoResponse.model_validate(user))
     return success_response(message="注册成功", data=response_data)

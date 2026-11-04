@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 # Redis 缓存记录可视化面板
-# 用法：在项目根目录运行  ./.venv/Scripts/python.exe scripts/redis_visualizer.py
-# 然后浏览器打开 http://localhost:8008 即可看到缓存记录（支持自动刷新）
-# 说明：只读取 Redis，不修改任何数据，不影响业务代码
-# 位置说明：本脚本属于"运维/调试工具"，和 ingest_news.py 一起放 scripts/；
-#   它不 import 项目任何模块（只用标准库 + redis），所以放在子目录里照样能独立运行。
 import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse

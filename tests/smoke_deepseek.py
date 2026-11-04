@@ -1,23 +1,5 @@
-# ============================================================
 # 区域：DeepSeek 连通性冒烟脚本（手动执行，不进 pytest）
 # 作用：单独验证「openai 库 + DeepSeek 接口 + .env 里的 key」这条链路是通的
-#   出问题时的排查顺序：key 有没有填 → base_url 对不对 → 网络能不能出去
-#
-# 用法（任意目录都能跑，脚本自己把项目根加进了模块搜索路径）：
-#   .venv\Scripts\python.exe tests\smoke_deepseek.py
-#
-# 为什么不叫 test_*.py（这块以前是个隐患）：
-#   pytest.ini 里写的是 python_files = test_*.py，所以叫 test_ 开头会被自动收集。
-#   而这个脚本要真的发网络请求、真的消耗额度，本该手动执行。
-#   现在靠 pytest.ini 的 testpaths=tests 挡着只是侥幸，改名才从根上分开：
-#     smoke_ 前缀 = 手动冒烟脚本（真连外部服务）
-#     test_  前缀 = 单元测试（离线、把外部依赖换成假的、1 秒跑完）
-#
-# 修掉的一个假绿问题：
-#   以前这里写死了 base_url="https://api.deepseek.com"，而业务代码
-#   （config/ai_conf.py）用的是 ".../v1"。两个地址不是同一个，
-#   这个脚本测通了不代表业务接口能通 —— 现在统一从 ai_conf 取。
-# ============================================================
 
 import os
 import sys
